@@ -1,6 +1,5 @@
 FROM mcr.microsoft.com/playwright/python:v1.51.0-noble
 
-# Install build tools, PostgreSQL client libs, and curl
 RUN apt-get update && apt-get install -y \
     build-essential \
     python3-dev \
@@ -10,25 +9,32 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Copy dependency files first
 COPY pyproject.toml poetry.lock ./
 
-# Install Poetry using the official installer
 RUN curl -sSL https://install.python-poetry.org | python3 - && \
     ln -s /root/.local/bin/poetry /usr/local/bin/poetry
 
-# Configure Poetry to create virtual environment inside the project
 RUN poetry config virtualenvs.in-project true
 
-# Install dependencies only (skip installing the project itself, because README.md is missing)
+# Install dependencies without the project itself
 RUN poetry install --without dev --no-root
 
-# Copy the rest of the code
 COPY . .
 
-# Keep-alive port
+# Create .env file from environment variables at runtime (using a startup script)
+RUN echo '#!/bin/bash\n\
+echo "HYACINTH_TZ=$HYACINTH_TZ" > .env\n\
+echo "HYACINTH_DISCORD_TOKEN=$HYACINTH_DISCORD_TOKEN" >> .env\n\
+echo "DATABASE_URL=$DATABASE_URL" >> .env\n\
+echo "POSTGRES_USER=$POSTGRES_USER" >> .env\n\
+echo "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" >> .env\n\
+echo "POSTGRES_HOST=$POSTGRES_HOST" >> .env\n\
+echo "POSTGRES_PORT=$POSTGRES_PORT" >> .env\n\
+echo "POSTGRES_DB=$POSTGRES_DB" >> .env\n\
+echo "HYACINTH_USE_LOCAL_GEOCODER=true" >> .env\n\
+poetry run hyacinth' > start.sh && chmod +x start.sh
+
 ENV PORT=8000
 EXPOSE 8000
 
-# Run the bot using the virtual environment
-CMD ["poetry", "run", "hyacinth"]
+CMD ["./start.sh"]

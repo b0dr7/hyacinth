@@ -16,16 +16,14 @@ RUN curl -sSL https://install.python-poetry.org | python3 - && \
 
 RUN poetry config virtualenvs.in-project true
 
-# Install dependencies without the project itself
 RUN poetry install --without dev --no-root
 
 COPY . .
 
-# Create .env file from environment variables at runtime (using a startup script)
+# Create .env file without DATABASE_URL – only the individual POSTGRES_* variables
 RUN echo '#!/bin/bash\n\
 echo "HYACINTH_TZ=$HYACINTH_TZ" > .env\n\
 echo "HYACINTH_DISCORD_TOKEN=$HYACINTH_DISCORD_TOKEN" >> .env\n\
-echo "DATABASE_URL=$DATABASE_URL" >> .env\n\
 echo "POSTGRES_USER=$POSTGRES_USER" >> .env\n\
 echo "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" >> .env\n\
 echo "POSTGRES_HOST=$POSTGRES_HOST" >> .env\n\

@@ -1,6 +1,6 @@
 FROM mcr.microsoft.com/playwright/python:v1.51.0-noble
 
-# Install build tools, PostgreSQL client libs (for psycopg2), and curl
+# Install build tools, PostgreSQL client libs, and curl
 RUN apt-get update && apt-get install -y \
     build-essential \
     python3-dev \
@@ -20,8 +20,8 @@ RUN curl -sSL https://install.python-poetry.org | python3 - && \
 # Configure Poetry to create virtual environment inside the project
 RUN poetry config virtualenvs.in-project true
 
-# Install dependencies (this will compile psycopg2 successfully)
-RUN poetry install --without dev
+# Install dependencies only (skip installing the project itself, because README.md is missing)
+RUN poetry install --without dev --no-root
 
 # Copy the rest of the code
 COPY . .

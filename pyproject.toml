@@ -31,6 +31,7 @@ scipy = "^1.11.1"
 sqlalchemy = "^2.0.19"
 wrapt = "^1.15.0"
 playwright = "^1.41.2"
+aiohttp = "^3.9.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.0.0"

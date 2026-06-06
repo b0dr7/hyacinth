@@ -5,9 +5,16 @@ from hyacinth.settings import get_settings
 import os
 
 settings = get_settings()
-credentials = f"{settings.postgres_user}:{settings.postgres_password}"
-host = f"{os.environ['POSTGRES_HOST']}:{os.environ['POSTGRES_PORT']}/{os.environ['POSTGRES_DB']}"
-connection_string = f"postgresql://{credentials}@{host}"
+
+# Use the prefixed environment variables (with HYACINTH_)
+user = os.environ.get('HYACINTH_POSTGRES_USER', '')
+password = os.environ.get('HYACINTH_POSTGRES_PASSWORD', '')
+host = os.environ.get('HYACINTH_POSTGRES_HOST', '')
+port = os.environ.get('HYACINTH_POSTGRES_PORT', '5432')
+db_name = os.environ.get('HYACINTH_POSTGRES_DB', '')
+
+# Build connection string
+connection_string = f"postgresql://{user}:{password}@{host}:{port}/{db_name}"
 engine = create_engine(connection_string, future=True)
 Session = sessionmaker(engine)
 Base.metadata.create_all(engine)

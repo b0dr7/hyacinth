@@ -1,4 +1,3 @@
-# hyacinth/keepalive.py
 import asyncio
 from aiohttp import web
 

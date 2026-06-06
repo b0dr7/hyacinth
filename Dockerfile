@@ -1,36 +1,32 @@
 FROM mcr.microsoft.com/playwright/python:v1.51.0-noble
 
+# Install necessary system packages (already includes wget and ca-certificates)
 RUN apt-get update && apt-get install -y \
     build-essential \
     python3-dev \
-    curl \
     libpq-dev \
     wget \
-    unzip \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Download geospatial data (required for local geocoding)
-RUN mkdir -p geography && \
-    cd geography && \
-    wget -q https://download.geonames.org/export/dump/cities1000.zip && \
-    unzip -q cities1000.zip && \
-    rm cities1000.zip && \
-    wget -q https://biogeo.ucdavis.edu/data/gadm3.6/gpkg/gadm36_USA_gpkg.zip && \
-    unzip -q gadm36_USA_gpkg.zip && \
-    rm gadm36_USA_gpkg.zip && \
-    cd ..
+# Copy the geospatial data directory FIRST
+COPY geography ./geography
 
+# Copy dependency files
 COPY pyproject.toml poetry.lock ./
 
+# Install Poetry and dependencies
 RUN curl -sSL https://install.python-poetry.org | python3 - && \
     ln -s /root/.local/bin/poetry /usr/local/bin/poetry
 
 RUN poetry config virtualenvs.in-project true
 
+# Install dependencies only
 RUN poetry install --without dev --no-root
 
+# Copy the rest of the code
 COPY . .
 
 # Create .env file using the HYACINTH_ prefixed variables
